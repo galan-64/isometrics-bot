@@ -9,13 +9,10 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKe
 
 TOKEN = os.getenv("BOT_TOKEN")
 CHANNEL_ID = "@kemergalan"
-# кажите ваш Telegram ID (числом), чтобы получать сообщения от пользователей через бота (если нужно)
-ADMIN_ID = 0  # ри желании сюда можно вписать ваш числовой ID
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-# анк цитат для генератора мотивации (без повторений, с флагами 🇹🇷🇺🇸)
 QUOTES = [
     "«исциплина — это мост между целями и достижениями.» 🇹🇷🇺🇸",
     "«вижение — это радость, а регулярность — это закон силы.» 🇹🇷🇺🇸",
@@ -109,7 +106,6 @@ async def cb_done_workout(callback: CallbackQuery):
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer("ринято! тличный результат! 💪")
 
-# --- Я  1: алькулятор нагрузки ---
 @dp.callback_query(F.data == "calc_start")
 async def cb_calc_start(callback: CallbackQuery):
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -142,7 +138,6 @@ async def cb_calc_result(callback: CallbackQuery):
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
 
-# --- Я  2: енератор цитат / мудрости ---
 @dp.callback_query(F.data == "random_quote")
 async def cb_random_quote(callback: CallbackQuery):
     quote = random.choice(QUOTES)
@@ -154,7 +149,6 @@ async def cb_random_quote(callback: CallbackQuery):
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
 
-# --- Я  3: Связь с автором ---
 @dp.callback_query(F.data == "contact_author")
 async def cb_contact_author(callback: CallbackQuery):
     text = (
@@ -173,18 +167,22 @@ async def cb_back(callback: CallbackQuery):
     await callback.message.edit_text("лавное меню тренера:", reply_markup=get_main_menu())
     await callback.answer()
 
-# --- оновый автопостинг в канал ---
+# --- втопостинг в канал С  ---
 async def scheduled_post_job():
     await asyncio.sleep(10)
     try:
         post_text = (
             "💪 **жедневная мотивация и дисциплина**\n\n"
             "«исциплина — это выбор между тем, чего ты хочешь сейчас, и тем, чего ты хочешь больше всего.»\n\n"
-            "е пропускайте тренировки, укрепляйте тело и дух. 🇹🇷🇺🇸\n"
-            "👉 агляните в нашего бота @isometrics_bot за программами тренировок!"
+            "е пропускайте тренировки, укрепляйте тело и дух. 🇹🇷🇺🇸"
         )
-        await bot.send_message(CHANNEL_ID, post_text, parse_mode="Markdown")
-        print("втоматический пост успешно отправлен в канал!")
+        # обавляем интерактивные кнопки прямо под пост в канале
+        channel_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="🤖 ткрыть бота и меню", url="https://t.me/isometrics_bot")]
+        ])
+        
+        await bot.send_message(CHANNEL_ID, post_text, reply_markup=channel_keyboard, parse_mode="Markdown")
+        print("втоматический пост с кнопкой успешно отправлен в канал!")
     except Exception as e:
         print(f"шибка при автопостинге в канал: {e}")
 
