@@ -7,6 +7,8 @@ from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 
 TOKEN = os.getenv("BOT_TOKEN")
+# ID вашего канала (укажите ваш точный юзернейм канала)
+CHANNEL_ID = "@kemergalan"
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
@@ -98,6 +100,22 @@ async def cb_back(callback: CallbackQuery):
     await callback.message.edit_text("лавное меню тренера:", reply_markup=get_main_menu())
     await callback.answer()
 
+# --- Я  Я ТСТ   ---
+async def scheduled_post_job():
+    """оновая задача, отправляющая пост в канал по расписанию (например, каждые 24 часа или для теста)"""
+    await asyncio.sleep(10)  включается через 10 сек после запуска бота
+    try:
+        post_text = (
+            "💪 **жедневная мотивация и дисциплина**\n\n"
+            "«исциплина — это выбор между тем, чего ты хочешь сейчас, и тем, чего ты хочешь больше всего.»\n\n"
+            "е пропускайте тренировки, укрепляйте тело и дух. 🇹🇷🇺🇸\n"
+            "👉 агляните в нашего бота @isometrics_bot за программами тренировок!"
+        )
+        await bot.send_message(CHANNEL_ID, post_text, parse_mode="Markdown")
+        print("втоматический пост успешно отправлен в канал!")
+    except Exception as e:
+        print(f"шибка при автопостинге в канал: {e}")
+
 async def handle_ping(request):
     return web.Response(text="Bot is running!")
 
@@ -112,7 +130,9 @@ async def start_web_server():
     print(f"Health check server started on port {port}")
 
 async def main():
-    await start_web_server()
+    # апускаем веб-сервер и автопостинг параллельно с ботом
+    asyncio.create_task(start_web_server())
+    asyncio.create_task(scheduled_post_job())
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
