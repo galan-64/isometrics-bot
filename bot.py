@@ -66,14 +66,36 @@ async def cb_bands(callback: CallbackQuery):
 
 @dp.callback_query(F.data == "daily_check")
 async def cb_daily_check(callback: CallbackQuery):
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="✅ а, тренировку выполнил!", callback_data="done_workout")],
+        [InlineKeyboardButton(text="⬅️ азад в меню", callback_data="back_to_menu")]
+    ])
     text = (
         "📋 **ек-лист на сегодня:**\n"
         "1. азминка и суставная гимнастика\n"
         "2. сновной блок (отжимания / скакалка)\n"
         "3. Травмобезопасность и умеренный темп\n\n"
-        "ажали кнопку — зафиксировали настрой на победу! 💪"
+        "ажмите кнопку ниже, чтобы зафиксировать выполнение:"
     )
-    await callback.message.edit_text(text, reply_markup=get_main_menu(), parse_mode="Markdown")
+    await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
+    await callback.answer()
+
+@dp.callback_query(F.data == "done_workout")
+async def cb_done_workout(callback: CallbackQuery):
+    text = (
+        "🔥 **тличная работа!**\n\n"
+        "Тренировка зафиксирована. исциплина — это делать то, что нужно, независимо от настроения.\n"
+        "Так держать!"
+    )
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="⬅️  главное меню", callback_data="back_to_menu")]
+    ])
+    await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
+    await callback.answer("ринято! тличный результат! 💪")
+
+@dp.callback_query(F.data == "back_to_menu")
+async def cb_back(callback: CallbackQuery):
+    await callback.message.edit_text("лавное меню тренера:", reply_markup=get_main_menu())
     await callback.answer()
 
 async def handle_ping(request):
