@@ -1,96 +1,97 @@
+﻿import asyncio
 import logging
-from aiogram import Bot, Dispatcher, F, types
+import os
+from aiohttp import web
+from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command
-from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 
-# Вставьте сюда ваш токен от BotFather
-TOKEN = "7038413967:AAFltpzXST8J3qbn2b0zjYkI0p89Lsy5WqQ"
-# Ваш канал с символом @
-CHANNEL_USERNAME = "@kemergalan"
-
-# Настройка логирования
-logging.basicConfig(level=logging.INFO)
+TOKEN = os.getenv("BOT_TOKEN")
 
 bot = Bot(token=TOKEN)
-dp = Dispatcher(storage=MemoryStorage())
+dp = Dispatcher()
 
-
-async def check_user_subscription(user_id: int) -> bool:
-  """Проверяет, подписан ли пользователь на канал."""
-  try:
-    member = await bot.get_chat_member(chat_id=CHANNEL_USERNAME, user_id=user_id)
-    # Статусы, при которых считается, что пользователь подписан
-    if member.status in [
-        "creator",
-        "administrator",
-        "member",
-    ]:
-      return True
-    return False
-  except Exception as e:
-    logging.error(f"Ошибка при проверке подписки: {e}")
-    return False
-
+def get_main_menu():
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🏋️‍♂️ алистеника и база", callback_data="ex_calisthenics")],
+        [InlineKeyboardButton(text="🔄 Скакалка и выносливость", callback_data="ex_rope")],
+        [InlineKeyboardButton(text="🦾 езинки и сопротивление", callback_data="ex_bands")],
+        [InlineKeyboardButton(text="📋 ек-лист тренировки дня", callback_data="daily_check")]
+    ])
+    return keyboard
 
 @dp.message(Command("start"))
-async def cmd_start(message: types.Message):
-  user_id = message.from_user.id
-
-  # Проверяем подписку при старте
-  is_subscribed = await check_user_subscription(user_id)
-
-  if is_subscribed:
-    # Если уже подписан — сразу выдаем бонус
-    await message.answer(
-        "🎉 Рады снова видеть вас! Спасибо, что подписаны на наш канал.\n\n"
-        "Вот ваш обещанный бесплатный бонус:\n👉 [Ссылка на ваш подарок, файл"
-        " или материал]"
+async def cmd_start(message: Message):
+    welcome_text = (
+        "риветствую! Я официальный бот канала @kemergalan.\n\n"
+        "десь вы найдете базу упражнений, программы тренировок и мотивацию для ежедневной дисциплины.\n"
+        "ыберите нужный раздел в меню ниже:"
     )
-  else:
-    # Если не подписан — просим подписаться и даем кнопку проверки
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="📢 Подписаться на канал",
-                    url=f"https://t.me/{CHANNEL_USERNAME.lstrip('@')}",
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="✅ Я подписался, проверить", callback_data="check_sub"
-                )
-            ],
-        ]
-    )
-    await message.answer(
-        "Привет! 👋 Чтобы получить бесплатный материал/бонус, подпишитесь на наш"
-        f" канал:\n\n{CHANNEL_USERNAME}\n\nПосле подписки нажмите кнопку ниже:",
-        reply_markup=keyboard,
-    )
+    await message.answer(welcome_text, reply_markup=get_main_menu())
 
+@dp.message(Command("menu"))
+async def cmd_menu(message: Message):
+    await message.answer("лавное меню тренера:", reply_markup=get_main_menu())
 
-@dp.callback_query(F.data == "check_sub")
-async def process_check_sub(callback: types.CallbackQuery):
-  user_id = callback.from_user.id
-  is_subscribed = await check_user_subscription(user_id)
-
-  if is_subscribed:
-    await callback.message.edit_text(
-        "✅ Отлично! Подписка подтверждена.\n\n"
-        "Вот ваш бесплатный бонус:\n👉 [Ссылка на ваш подарок, файл или"
-        " материал]"
+@dp.callback_query(F.data == "ex_calisthenics")
+async def cb_calisthenics(callback: CallbackQuery):
+    text = (
+        "🏋️‍♂️ **алистеника и базовые упражнения**\n\n"
+        "• **Тайсон-отжимания:** ощная база для груди, плеч и трицепсов.\n"
+        "• **Собственный вес:** снова силы, выносливости и суставного здоровья.\n"
+        "исциплина и регулярность — залог результата на годы вперёд!"
     )
-  else:
-    await callback.answer(
-        "❌ Вы еще не подписались на канал! Пожалуйста, подпишитесь и нажмите"
-        " кнопку снова.",
-        show_alert=True,
-    )
+    await callback.message.edit_text(text, reply_markup=get_main_menu(), parse_mode="Markdown")
+    await callback.answer()
 
+@dp.callback_query(F.data == "ex_rope")
+async def cb_rope(callback: CallbackQuery):
+    text = (
+        "🔄 **Скакалка и кардио**\n\n"
+        "• рыжки на скакалке отлично развивают координацию, взрывную силу ног и дыхательную систему.\n"
+        "• ержите темп, работайте стопами и выстраивайте ритм."
+    )
+    await callback.message.edit_text(text, reply_markup=get_main_menu(), parse_mode="Markdown")
+    await callback.answer()
+
+@dp.callback_query(F.data == "ex_bands")
+async def cb_bands(callback: CallbackQuery):
+    text = (
+        "🦾 **орцовские резинки**\n\n"
+        "• Сопротивление под нагрузкой защищает суставы и прорабатывает стабилизаторы.\n"
+        "• тлично подходит для функциональной подготовки и укрепления связок."
+    )
+    await callback.message.edit_text(text, reply_markup=get_main_menu(), parse_mode="Markdown")
+    await callback.answer()
+
+@dp.callback_query(F.data == "daily_check")
+async def cb_daily_check(callback: CallbackQuery):
+    text = (
+        "📋 **ек-лист на сегодня:**\n"
+        "1. азминка и суставная гимнастика\n"
+        "2. сновной блок (отжимания / скакалка)\n"
+        "3. Травмобезопасность и умеренный темп\n\n"
+        "ажали кнопку — зафиксировали настрой на победу! 💪"
+    )
+    await callback.message.edit_text(text, reply_markup=get_main_menu(), parse_mode="Markdown")
+    await callback.answer()
+
+async def handle_ping(request):
+    return web.Response(text="Bot is running!")
+
+async def start_web_server():
+    app = web.Application()
+    app.router.add_get("/", handle_ping)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    port = int(os.environ.get("PORT", 10000))
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
+    print(f"Health check server started on port {port}")
+
+async def main():
+    await start_web_server()
+    await dp.start_polling(bot)
 
 if __name__ == "__main__":
-  import asyncio
-
-  asyncio.run(dp.start_polling(bot))
+    asyncio.run(main())
